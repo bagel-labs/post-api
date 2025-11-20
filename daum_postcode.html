@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>주소 검색</title>
+    <style>
+        * { 
+            margin: 0; 
+            padding: 0; 
+            box-sizing: border-box;
+        }
+        html, body { 
+            width: 100%; 
+            height: 100%; 
+            overflow: hidden; 
+            background: white;
+        }
+        #layer {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div id="layer"></div>
+    <script src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+    <script>
+        // Daum 우편번호 서비스 초기화
+        new daum.Postcode({
+            oncomplete: function(data) {
+                var addr = data.address;
+                var zonecode = data.zonecode;
+                
+                // 지번 주소를 포함하는 경우
+                if(data.addressType === 'R'){
+                    // 법정동명이 있을 경우 추가
+                    if(data.bname !== '' && /[동|로|가]$/.test(data.bname)){
+                        addr += ' ' + data.bname;
+                    }
+                    // 건물명이 있고, 공동주택일 경우 추가
+                    if(data.buildingName !== '' && data.apartment === 'Y'){
+                        addr += (addr !== '' ? ', ' + data.buildingName : data.buildingName);
+                    }
+                }
+                
+                // Android JavaScript Interface 호출
+                if (typeof Android !== 'undefined' && Android.processDATA) {
+                    Android.processDATA(zonecode, addr);
+                } else {
+                    console.error('Android interface not found');
+                }
+            },
+            width: '100%',
+            height: '100%',
+            maxSuggestItems: 5
+        }).embed(document.getElementById('layer'));
+    </script>
+</body>
+</html>
+
