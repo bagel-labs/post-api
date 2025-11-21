@@ -56,6 +56,58 @@
             height: '100%',
             maxSuggestItems: 5
         }).embed(document.getElementById('layer'));
+        
+        // 페이지 로드 후 링크 가로채기
+        window.addEventListener('load', function() {
+            function interceptLinks() {
+                var allLinks = document.querySelectorAll('a[href]');
+                allLinks.forEach(function(link) {
+                    var href = link.getAttribute('href');
+                    if (!href) return;
+                    
+                    // FAQ 링크 처리
+                    if (href.indexOf('faq') !== -1 || href.indexOf('help') !== -1 || 
+                        link.textContent.indexOf('FAQ') !== -1 || link.textContent.indexOf('자주묻는질문') !== -1) {
+                        link.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            // Android Interface로 FAQ 클릭 알림
+                            if (typeof Android !== 'undefined' && Android.onLinkClick) {
+                                Android.onLinkClick('faq');
+                            }
+                        }, true);
+                    }
+                    // 카카오맵 링크 처리
+                    else if (href.indexOf('map.kakao') !== -1 || href.indexOf('kakao.com') !== -1 || 
+                             link.textContent.indexOf('지도') !== -1 || link.textContent.indexOf('맵') !== -1 ||
+                             href.indexOf('place') !== -1) {
+                        link.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            // Android Interface로 카카오맵 링크 전달
+                            if (typeof Android !== 'undefined' && Android.onLinkClick) {
+                                Android.onLinkClick('map', href);
+                            }
+                        }, true);
+                    }
+                });
+            }
+            
+            // MutationObserver로 동적으로 추가되는 링크 감지
+            var observer = new MutationObserver(function(mutations) {
+                interceptLinks();
+            });
+            
+            // body 전체를 관찰
+            observer.observe(document.body, {
+                childList: true,
+                subtree: true
+            });
+            
+            // 초기 실행 (이미 존재하는 링크 처리)
+            setTimeout(interceptLinks, 500);
+            setTimeout(interceptLinks, 1500);
+        });
     </script>
 </body>
 </html>
