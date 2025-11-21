@@ -88,19 +88,41 @@
                             normalizedText.indexOf('faq') !== -1 ||
                             normalizedText.indexOf('자주묻는질문') !== -1) {
                             isFaqLink = true;
-                            console.log('FAQ 링크 감지:', linkText, href);
                         }
                     }
                     
                     if (isFaqLink) {
+                        // href를 제거하여 기본 링크 동작 방지
+                        link.setAttribute('href', '#');
+                        link.setAttribute('data-original-href', href); // 원본 저장 (필요시)
+                        
+                        // 여러 방식으로 이벤트 차단
                         link.addEventListener('click', function(e) {
                             e.preventDefault();
                             e.stopPropagation();
-                            // Android Interface로 FAQ 클릭 알림
+                            e.stopImmediatePropagation();
+                            return false;
+                        }, true); // capture 모드로 먼저 실행
+                        
+                        // Android Interface로 FAQ 클릭 알림
+                        link.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            e.stopPropagation();
                             if (typeof Android !== 'undefined' && Android.onLinkClick) {
                                 Android.onLinkClick('faq');
                             }
-                        }, true);
+                            return false;
+                        }, false);
+                        
+                        // 마우스 이벤트도 차단
+                        link.onclick = function(e) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            if (typeof Android !== 'undefined' && Android.onLinkClick) {
+                                Android.onLinkClick('faq');
+                            }
+                            return false;
+                        };
                     }
                     // 카카오맵 링크 처리
                     else if (href.indexOf('map.kakao') !== -1 || href.indexOf('kakao.com') !== -1 || 
