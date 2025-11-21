@@ -61,24 +61,33 @@
         window.addEventListener('load', function() {
             function interceptLinks() {
                 var allLinks = document.querySelectorAll('a[href]');
-                allLinks.forEach(function(link) {
+                console.log('[DEBUG] 총 링크 개수:', allLinks.length);
+                allLinks.forEach(function(link, index) {
                     var href = link.getAttribute('href');
                     if (!href) return;
                     
                     // 텍스트 정규화 (공백 제거, 소문자 변환)
                     var normalizedText = link.textContent.replace(/\s+/g, '').toLowerCase();
                     var normalizedHref = href.toLowerCase();
+                    var linkText = link.innerText || link.textContent || '';
                     
                     // FAQ 링크 처리 - 더 유연한 매칭
                     var isFaqLink = false;
-                    var linkText = link.innerText || link.textContent || '';
+                    var faqCheckReason = '';
                     
                     // href로 확인 (QnA, FAQ 등) - 소문자로 변환된 href에서 체크
-                    if (normalizedHref.indexOf('faq') !== -1 || 
-                        normalizedHref.indexOf('qna') !== -1 ||
-                        (normalizedHref.indexOf('github.com') !== -1 && normalizedHref.indexOf('qna') !== -1) ||
-                        normalizedHref.indexOf('daumpostcode/qna') !== -1) {
+                    if (normalizedHref.indexOf('faq') !== -1) {
                         isFaqLink = true;
+                        faqCheckReason = 'href에 faq 포함';
+                    } else if (normalizedHref.indexOf('qna') !== -1) {
+                        isFaqLink = true;
+                        faqCheckReason = 'href에 qna 포함';
+                    } else if (normalizedHref.indexOf('github.com') !== -1 && normalizedHref.indexOf('qna') !== -1) {
+                        isFaqLink = true;
+                        faqCheckReason = 'github.com + qna';
+                    } else if (normalizedHref.indexOf('daumpostcode/qna') !== -1) {
+                        isFaqLink = true;
+                        faqCheckReason = 'daumpostcode/qna';
                     }
                     
                     // 텍스트로 확인 (정규식 사용 - 공백, 괄호 등 무시)
@@ -91,14 +100,34 @@
                         // 정규식: 자주 + (공백) + 묻는 + (공백) + 질문 또는 FAQ
                         var faqPattern = /자주\s*묻는\s*질문|자주묻는질문|faq/i;
                         
-                        if (faqPattern.test(linkText) || 
-                            faqPattern.test(textWithoutSpaces) ||
-                            textWithoutSpaces.indexOf('자주묻는질문') !== -1 ||
-                            lowerText.indexOf('faq') !== -1 ||
-                            lowerText.indexOf('자주 묻는 질문') !== -1) {
+                        if (faqPattern.test(linkText)) {
                             isFaqLink = true;
+                            faqCheckReason = '정규식 매칭 (linkText)';
+                        } else if (faqPattern.test(textWithoutSpaces)) {
+                            isFaqLink = true;
+                            faqCheckReason = '정규식 매칭 (textWithoutSpaces)';
+                        } else if (textWithoutSpaces.indexOf('자주묻는질문') !== -1) {
+                            isFaqLink = true;
+                            faqCheckReason = 'textWithoutSpaces에 자주묻는질문';
+                        } else if (lowerText.indexOf('faq') !== -1) {
+                            isFaqLink = true;
+                            faqCheckReason = 'lowerText에 faq';
+                        } else if (lowerText.indexOf('자주 묻는 질문') !== -1) {
+                            isFaqLink = true;
+                            faqCheckReason = 'lowerText에 자주 묻는 질문';
                         }
                     }
+                    
+                    // 디버깅 로그
+                    console.log('[DEBUG] 링크 #' + index + ':', {
+                        href: href,
+                        normalizedHref: normalizedHref,
+                        linkText: linkText,
+                        textWithoutSpaces: linkText ? linkText.replace(/\s+/g, '') : '',
+                        lowerText: linkText ? linkText.toLowerCase() : '',
+                        isFaqLink: isFaqLink,
+                        reason: faqCheckReason || 'FAQ 아님'
+                    });
                     
                     if (isFaqLink) {
                         // href를 제거하여 기본 링크 동작 방지
