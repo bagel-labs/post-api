@@ -71,22 +71,29 @@
                     
                     // FAQ 링크 처리 - 더 유연한 매칭
                     var isFaqLink = false;
+                    var linkText = link.innerText || link.textContent || '';
                     
-                    // href로 확인
+                    // href로 확인 (QnA, FAQ, help 등)
                     if (normalizedHref.indexOf('faq') !== -1 || 
-                        normalizedHref.indexOf('help') !== -1 ||
-                        normalizedHref.indexOf('daum.net/faq') !== -1) {
+                        normalizedHref.indexOf('qna') !== -1 ||
+                        normalizedHref.indexOf('github.com/daumPostCode/QnA') !== -1) {
                         isFaqLink = true;
                     }
                     
                     // 텍스트로 확인 (정규식 사용 - 공백, 괄호 등 무시)
-                    if (!isFaqLink) {
+                    if (!isFaqLink && linkText) {
                         // "자주 묻는 질문", "자주묻는질문", "자주 묻는 질문(FAQ)" 등 모두 매칭
-                        var faqPattern = /자주\s*묻는\s*질문|faq/i;
-                        var linkText = link.textContent || '';
+                        // 공백을 제거한 텍스트로도 확인
+                        var textWithoutSpaces = linkText.replace(/\s+/g, '');
+                        
+                        // 정규식: 자주 + (공백) + 묻는 + (공백) + 질문 또는 FAQ
+                        var faqPattern = /자주\s*묻는\s*질문|자주묻는질문|faq/i;
+                        
                         if (faqPattern.test(linkText) || 
-                            normalizedText.indexOf('faq') !== -1 ||
-                            normalizedText.indexOf('자주묻는질문') !== -1) {
+                            faqPattern.test(textWithoutSpaces) ||
+                            textWithoutSpaces.indexOf('자주묻는질문') !== -1 ||
+                            textWithoutSpaces.toLowerCase().indexOf('faq') !== -1 ||
+                            linkText.toLowerCase().indexOf('faq') !== -1) {
                             isFaqLink = true;
                         }
                     }
