@@ -73,10 +73,11 @@
                     var isFaqLink = false;
                     var linkText = link.innerText || link.textContent || '';
                     
-                    // href로 확인 (QnA, FAQ, help 등)
+                    // href로 확인 (QnA, FAQ 등) - 소문자로 변환된 href에서 체크
                     if (normalizedHref.indexOf('faq') !== -1 || 
                         normalizedHref.indexOf('qna') !== -1 ||
-                        normalizedHref.indexOf('github.com/daumPostCode/QnA') !== -1) {
+                        (normalizedHref.indexOf('github.com') !== -1 && normalizedHref.indexOf('qna') !== -1) ||
+                        normalizedHref.indexOf('daumpostcode/qna') !== -1) {
                         isFaqLink = true;
                     }
                     
@@ -85,6 +86,7 @@
                         // "자주 묻는 질문", "자주묻는질문", "자주 묻는 질문(FAQ)" 등 모두 매칭
                         // 공백을 제거한 텍스트로도 확인
                         var textWithoutSpaces = linkText.replace(/\s+/g, '');
+                        var lowerText = linkText.toLowerCase();
                         
                         // 정규식: 자주 + (공백) + 묻는 + (공백) + 질문 또는 FAQ
                         var faqPattern = /자주\s*묻는\s*질문|자주묻는질문|faq/i;
@@ -92,8 +94,8 @@
                         if (faqPattern.test(linkText) || 
                             faqPattern.test(textWithoutSpaces) ||
                             textWithoutSpaces.indexOf('자주묻는질문') !== -1 ||
-                            textWithoutSpaces.toLowerCase().indexOf('faq') !== -1 ||
-                            linkText.toLowerCase().indexOf('faq') !== -1) {
+                            lowerText.indexOf('faq') !== -1 ||
+                            lowerText.indexOf('자주 묻는 질문') !== -1) {
                             isFaqLink = true;
                         }
                     }
