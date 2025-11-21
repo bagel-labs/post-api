@@ -65,9 +65,34 @@
                     var href = link.getAttribute('href');
                     if (!href) return;
                     
-                    // FAQ 링크 처리
-                    if (href.indexOf('faq') !== -1 || href.indexOf('help') !== -1 || 
-                        link.textContent.indexOf('FAQ') !== -1 || link.textContent.indexOf('자주묻는질문') !== -1) {
+                    // 텍스트 정규화 (공백 제거, 소문자 변환)
+                    var normalizedText = link.textContent.replace(/\s+/g, '').toLowerCase();
+                    var normalizedHref = href.toLowerCase();
+                    
+                    // FAQ 링크 처리 - 더 유연한 매칭
+                    var isFaqLink = false;
+                    
+                    // href로 확인
+                    if (normalizedHref.indexOf('faq') !== -1 || 
+                        normalizedHref.indexOf('help') !== -1 ||
+                        normalizedHref.indexOf('daum.net/faq') !== -1) {
+                        isFaqLink = true;
+                    }
+                    
+                    // 텍스트로 확인 (정규식 사용 - 공백, 괄호 등 무시)
+                    if (!isFaqLink) {
+                        // "자주 묻는 질문", "자주묻는질문", "자주 묻는 질문(FAQ)" 등 모두 매칭
+                        var faqPattern = /자주\s*묻는\s*질문|faq/i;
+                        var linkText = link.textContent || '';
+                        if (faqPattern.test(linkText) || 
+                            normalizedText.indexOf('faq') !== -1 ||
+                            normalizedText.indexOf('자주묻는질문') !== -1) {
+                            isFaqLink = true;
+                            console.log('FAQ 링크 감지:', linkText, href);
+                        }
+                    }
+                    
+                    if (isFaqLink) {
                         link.addEventListener('click', function(e) {
                             e.preventDefault();
                             e.stopPropagation();
