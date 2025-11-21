@@ -57,11 +57,12 @@
             maxSuggestItems: 5
         }).embed(document.getElementById('layer'));
         
-        // 페이지 로드 후 링크 가로채기
-        window.addEventListener('load', function() {
-            function interceptLinks() {
-                var allLinks = document.querySelectorAll('a[href]');
-                console.log('[DEBUG] 총 링크 개수:', allLinks.length);
+        // 링크 가로채기 함수
+        function interceptLinks() {
+            // #layer 내부의 모든 링크 찾기 (Daum Postcode가 생성하는 영역)
+            var container = document.getElementById('layer');
+            var allLinks = container ? container.querySelectorAll('a[href]') : document.querySelectorAll('a[href]');
+            console.log('[DEBUG] 총 링크 개수:', allLinks.length);
                 allLinks.forEach(function(link, index) {
                     var href = link.getAttribute('href');
                     if (!href) return;
@@ -177,22 +178,34 @@
                     }
                 });
             }
-            
-            // MutationObserver로 동적으로 추가되는 링크 감지
+        
+        // MutationObserver로 동적으로 추가되는 링크 감지
+        var container = document.getElementById('layer');
+        if (container) {
             var observer = new MutationObserver(function(mutations) {
+                // DOM 변경 시에만 체크
                 interceptLinks();
             });
             
-            // body 전체를 관찰
+            // #layer와 body 모두 관찰
+            observer.observe(container, {
+                childList: true,
+                subtree: true,
+                attributes: false
+            });
             observer.observe(document.body, {
                 childList: true,
                 subtree: true
             });
-            
-            // 초기 실행 (이미 존재하는 링크 처리)
-            setTimeout(interceptLinks, 500);
-            setTimeout(interceptLinks, 1500);
+        }
+        
+        // 페이지 로드 후 초기 실행
+        window.addEventListener('load', function() {
+            interceptLinks();
         });
+        
+        // 즉시 한 번 실행
+        interceptLinks();
     </script>
 </body>
 </html>
